@@ -1,0 +1,3 @@
+include -c components/payload emp_simple_payload.dep
+include -c boards/vcu118 vcu118.dep
+src vcu118_decl_full.vhd 

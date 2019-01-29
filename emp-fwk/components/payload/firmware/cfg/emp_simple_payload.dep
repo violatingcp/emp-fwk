@@ -1,0 +1,6 @@
+src emp_payload.vhd
+src -c components/datapath emp_data_types.vhd
+src -c ipbus-firmware:components/ipbus_core ipbus_package.vhd
+src -c components/ttc mp7_ttc_decl.vhd
+src ../ucf/emp_simple_payload.tcl
+addrtab emp_payload.xml

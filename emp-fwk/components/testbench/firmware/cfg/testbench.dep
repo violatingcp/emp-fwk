@@ -1,0 +1,9 @@
+src EMPCaptureFileWriter.vhd
+src EMPCaptureFileReader.vhd
+src emp_capture_tools.vhd
+src emp_data_textio.vhd
+src emp_testbench_helpers.vhd
+
+src -c components/datapath emp_data_types.vhd
+
+include vhdl-extras.dep

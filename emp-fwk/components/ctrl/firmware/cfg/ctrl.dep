@@ -1,0 +1,5 @@
+src -c ipbus-firmware:components/ipbus_slaves ipbus_ctrlreg_v.vhd ipbus_reg_types.vhd
+addrtab -t emp_ctrl.xml
+src emp_ctrl.vhd
+src board_const_reg_legacy.vhd
+src ipbus_decode_emp_ctrl.vhd

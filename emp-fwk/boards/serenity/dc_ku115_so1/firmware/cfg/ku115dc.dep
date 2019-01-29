@@ -1,0 +1,17 @@
+@device_family = "KintexUltraScale"
+@device_name = "xcku115"
+@device_package = "-flvd1517"
+@device_speed = "-2-i"
+@boardname = "ic_ku115dc"
+
+
+src --cd ../ucf pins.tcl area_constraints.tcl
+
+src emp_device_decl.vhd
+
+include -c components/utils slim_top_us.dep
+
+src emp_slim_top_decl.vhd
+
+src --cd ../ucf clock_constraints.tcl
+

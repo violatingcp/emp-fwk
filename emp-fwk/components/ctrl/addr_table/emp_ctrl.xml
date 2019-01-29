@@ -1,0 +1,41 @@
+<node description="top-level control and status registers" class="CtrlNode" fwinfo="endpoint;width=3">
+    <!-- [0x0, 0x1] -->
+    <node id="csr" address="0x0" description="ctrl/stat register" fwinfo="endpoint;width=1">
+        <node id="ctrl" address="0x0">
+            <node id="nuke" mask="0x1"/>
+            <node id="clk40_rst" mask="0x2"/>
+            <node id="clk40_sel" mask="0x4"/>
+            <node id="soft_rst" mask="0x8"/>
+        </node>
+        <node id="stat" address="0x1">
+            <node id="clk40_lock" mask="0x1"/>
+            <node id="clk40_stop" mask="0x2"/>
+            <node id="debug" mask="0xff00"/>
+        </node>
+    </node>
+    <!-- [0x2,] -->
+    <node id="board_id" address="0x2" description="Board ID register" fwinfo="endpoint;width=0">
+        <node id="board" mask="0xf"/>
+        <node id="crate" mask="0xf0"/>
+        <node id="component" mask="0xf00"/>
+        <node id="system" mask="0xf000"/>
+    </node>
+    <!-- [0x4,0x7] -->
+    <node id="id" address="0x4" description="ID register" fwinfo="endpoint;width=2">
+        <node id="magic" address="0x0"/>
+        <node id="fwrev" address="0x1">
+            <node id="c" mask="0x000000ff"/>
+            <node id="b" mask="0x0000ff00"/>
+            <node id="a" mask="0x00ff0000"/>
+            <node id="design" mask="0xff000000"/>
+        </node>
+        <node id="algorev" address="0x2"/>
+        <node id="generics" address="0x3">
+            <node id="bunch_count" mask="0xfff"/>
+            <node id="ro_chunks" mask="0x3f000"/>
+            <node id="lb_addr_width" mask="0x3c0000"/>
+            <node id="n_region" mask="0xfc00000"/>
+            <node id="clock_ratio" mask="0xf0000000"/>
+        </node>
+    </node>
+</node>

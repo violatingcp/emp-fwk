@@ -1,0 +1,15 @@
+@device_family = "VirtexUltraScalePlus"
+@device_name = "xcvu9p"
+@device_package = "-flga2104"
+@device_speed = "-2L-e"
+@boardname = "xilinx_vcu118"
+
+
+setup settings.tcl
+src --cd ../ucf vcu118.tcl
+
+src top_vcu118.vhd
+
+include infra_usp.dep
+src -c ipbus-firmware:components/ipbus_core ipbus_package.vhd
+include -c ipbus-firmware:components/ipbus_util ipbus_example.dep

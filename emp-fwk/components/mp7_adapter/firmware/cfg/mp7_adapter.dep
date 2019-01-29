@@ -1,0 +1,3 @@
+src mp7_brd_decl.vhd
+src mp7_top_decl.vhd
+src top_decl.vhd

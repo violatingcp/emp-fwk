@@ -1,0 +1,16 @@
+@device_family = "KintexUltraScale"
+@device_name = "xcku115"
+@device_package = "-flvb1760"
+@device_speed = "-2-e"
+@boardname = "mpultra"
+
+
+setup settings.tcl
+src --cd ../ucf mpultra.tcl
+
+src top_mpultra.vhd
+
+include infra_us.dep
+src -c ipbus-firmware:components/ipbus_core ipbus_package.vhd
+include -c ipbus-firmware:components/ipbus_util ipbus_example.dep
+

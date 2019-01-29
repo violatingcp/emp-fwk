@@ -1,0 +1,14 @@
+src -c ipbus-firmware:components/ipbus_core ipbus_fabric_sel.vhd
+src -c mp7:components/mp7_ttc ipbus_decode_mp7_ttc.vhd
+addrtab -c mp7:components/mp7_ttc -t mp7_ttc.xml
+src emp_ttc_cmd.vhd 
+src -c mp7:components/mp7_ttc l1a_gen.vhd rng_wrapper.vhd rng_n1024_r32_t5_k32_s1c48.vhd ttc_ctrs.vhd ttc_decoder.vhd bunch_ctr.vhd freq_ctr.vhd freq_ctr_div.vhd ttc_cmd_ctrs.vhd
+src -c ipbus-firmware:components/ipbus_util del_array.vhd
+src -c mp7:components/mp7_ttc ttc_history_new.vhd
+include state_history.dep
+src -c mp7:components/mp7_ttc tmt_sync.vhd
+src mp7_ttc_decl.vhd
+
+include -c ipbus-firmware:components/ipbus_slaves syncreg_v.dep
+src -c ipbus-firmware:components/ipbus_slaves ipbus_reg_types.vhd ipbus_reg_v.vhd ipbus_ctrlreg_v.vhd
+src -c ipbus-firmware:components/ipbus_core ipbus_package.vhd

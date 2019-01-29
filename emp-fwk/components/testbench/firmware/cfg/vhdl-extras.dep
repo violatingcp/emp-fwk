@@ -1,0 +1,7 @@
+src --lib=extras vhdl-extras/strings_unbounded.vhdl
+src --lib=extras vhdl-extras/strings_fixed.vhdl
+src --lib=extras vhdl-extras/characters_handling.vhdl
+src --lib=extras vhdl-extras/strings_maps_constants.vhdl
+src --lib=extras vhdl-extras/strings_maps.vhdl
+src --lib=extras vhdl-extras/strings.vhdl
+src --lib=extras vhdl-extras/characters_latin_1.vhdl

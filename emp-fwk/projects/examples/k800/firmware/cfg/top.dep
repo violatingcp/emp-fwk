@@ -1,0 +1,4 @@
+include -c components/payload emp_simple_payload.dep
+include -c boards/k800 k800.dep
+
+src k800_decl.vhd 

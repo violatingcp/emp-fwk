@@ -1,0 +1,5 @@
+src testbench_top.vhd emp_device_decl.vhd
+src -c ipbus-firmware:components/ipbus_core ipbus_package.vhd 
+
+include -c components/testbench
+

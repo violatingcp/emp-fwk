@@ -1,0 +1,9 @@
+src ipbus_pcie_test_usp_infra.vhd
+
+src -c components/utils usp/emp_clocks.vhd
+include -c components/pcie_dma pcie_dma_usp.dep
+include -c components/ipbus_pcie
+include -c ipbus-firmware:components/ipbus_core
+
+src -c ipbus-firmware:components/ipbus_core ipbus_package.vhd
+

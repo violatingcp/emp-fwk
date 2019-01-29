@@ -1,0 +1,9 @@
+
+src emp_slim_infra.vhd
+src usp/emp_clocks.vhd usp/emp_oscclk.vhd
+
+include -c components/pcie_dma pcie_dma_usp.dep
+include -c components/ipbus_pcie
+
+include -c ipbus-firmware:components/ipbus_core
+

@@ -1,0 +1,2 @@
+src emp_ttc.vhd usp/emp_ttc_clocks.vhd
+include ttc_common.dep

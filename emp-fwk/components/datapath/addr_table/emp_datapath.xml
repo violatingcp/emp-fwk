@@ -1,0 +1,10 @@
+<node description="MP7 IO datapath" fwinfo="endpoint" class="DatapathNode">
+	<node id="ctrl" address="0x0" description="ctrl/stat register" fwinfo="endpoint;width=0">
+		<node id="txrx_sel" mask="0x01"/>
+		<node id="chan_sel" mask="0x06"/>
+		<node id="quad_sel" mask="0xf8"/>
+	</node>
+	<node id="region_info" address="0x1" module="file://region_info.xml"/>
+	<node id="bc0_mon" module="file://align_mon.xml" address="0x2"/>
+	<node id="region" module="file://emp_region.xml" address="0x800"/>
+</node>

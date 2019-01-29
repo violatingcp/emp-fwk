@@ -1,0 +1,22 @@
+
+setup -c components/framework settings_synth.tcl
+setup settings_emp_slim_design.tcl
+
+src --cd ../ucf slim_design_clock_constraints.tcl
+
+src emp_slim_top.vhd
+addrtab -t emp_slim_design.xml
+
+include slim_infra_usp.dep
+include -c components/info
+include -c components/ctrl
+include -c components/ttc ttc_usp.dep
+include -c components/datapath
+
+src -c ipbus-firmware:components/ipbus_core ipbus_package.vhd
+src ipbus_decode_emp_slim_design.vhd
+
+include -c components/mp7_adapter 
+src -c components/framework emp_device_types.vhd 
+src -c components/framework emp_framework_decl.vhd 
+

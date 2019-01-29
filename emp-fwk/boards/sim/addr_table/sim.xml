@@ -1,0 +1,7 @@
+<node id="TOP">
+    <node id="info" module="file://emp_info.xml" address="0x0"/>
+    <node id="ctrl" module="file://emp_ctrl.xml" address="0x8"/>
+    <node id="ttc" module="file://mp7_ttc.xml" address="0x40"/>
+    <node id="datapath" module="file://emp_datapath.xml" address="0x1000"/>
+    <node id="payload" module="file://emp_payload.xml" address="0x80000000" fwinfo="endpoint;width=31"/>
+</node>

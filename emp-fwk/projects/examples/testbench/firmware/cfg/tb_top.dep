@@ -1,0 +1,19 @@
+include -c boards/testbench
+
+# Pull in the magical testbench
+# include -c components/testbench
+
+# Good old nullalgo
+include -c components/payload emp_simple_payload.dep
+
+include -c components/mp7_adapter
+# Testbench example project declaration
+src tb_project_decl.vhd
+# testbench constants
+src tb_decl.vhd
+
+src -c components/framework emp_device_types.vhd
+# Replicate the mpultra device
+src -c boards/testbench emp_device_decl.vhd 
+src -c components/framework emp_framework_decl.vhd
+

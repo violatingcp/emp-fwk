@@ -1,0 +1,9 @@
+include -c boards/sim
+include -c components/payload emp_simple_payload.dep
+include -c components/mp7_adapter
+src sim_decl.vhd
+src -c components/framework emp_device_types.vhd
+src -c boards/sim emp_device_decl.vhd 
+src -c components/framework emp_framework_decl.vhd
+
+

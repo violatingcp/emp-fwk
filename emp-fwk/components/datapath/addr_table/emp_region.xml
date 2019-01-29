@@ -1,0 +1,8 @@
+<node description="MP7 clock region" fwinfo="endpoint">
+    <node id="buffer" module="file://emp_chan_buffer.xml" address="0x0"/>
+    <node id="formatter" module="file://mp7_formatter.xml" address="0x8"/>
+    <node id="align" module="file://align_mon.xml" address="0x10"/>
+    <node id="mgt" module="file://dummy_links.xml" address="0x40"/>
+    <node id="drp" module="file://mp7_drp_chan.xml" address="0x200"/>
+    <node id="drp_com" module="file://mp7_drp_common.xml" address="0x400"/>
+</node>

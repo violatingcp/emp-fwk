@@ -1,0 +1,3 @@
+include -c components/payload emp_simple_payload.dep
+include -c boards/serenity/dc_ku115_so1 ku115dc.dep
+src ku115dc_decl_full.vhd 

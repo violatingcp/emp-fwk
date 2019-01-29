@@ -1,0 +1,6 @@
+src buffer_trans_if.v
+
+src ClockDomainCross.v
+src tx_dpram.v
+?toolset=="Vivado"? src ../cgn/blk_mem_gen_3/blk_mem_gen_3.xci
+?toolset=="Vivado"? src ../cgn/blk_mem_gen_2/blk_mem_gen_2.xci

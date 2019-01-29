@@ -1,0 +1,26 @@
+<node description="MP7 channel buffer" fwinfo="endpoint" class="ChannelBufferNode">
+	<node id="csr" address="0x0" description="Control / status register" fwinfo="endpoint;width=2">
+		<node id="mode" address="0x0">
+			<node id="mode" mask="0x3"/>
+			<node id="datasrc" mask="0xc"/>
+			<node id="stbsrc" mask="0x30"/>
+			<node id="patt_valid_disable" mask="0x40"/>
+			<node id="cap_stb_mask" mask="0x80"/>
+			<node id="stb_patt" mask="0x3f00"/>
+			<node id="daq_bank" mask="0xf0000"/>
+		</node>
+		<node id="range" address="0x1">
+			<node id="trig_cyc" mask="0xf"/>
+			<node id="trig_bx" mask="0xfff0"/>
+			<node id="max_word" mask="0xfff0000"/>
+		</node>
+		<node id="stat" address="0x2">
+			<node id="locked" mask="0x1"/>
+			<node id="cap_done" mask="0x2"/>
+		</node>
+	</node>
+	<node id="buffer" address="0x4" description="Capture / playback buffers for MGT channel" fwinfo="endpoint;width=1">
+		<node id="addr" address="0x0"/>
+		<node id="data" address="0x1" size="0x1000" mode="port"/>
+	</node>
+</node>
