@@ -1,0 +1,4 @@
+## mgt cores 
+include -c components/links/be_mgt/gth_16g gth_16g_ip.dep
+
+include common.dep

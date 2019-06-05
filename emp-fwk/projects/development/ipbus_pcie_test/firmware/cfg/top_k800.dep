@@ -1,4 +1,4 @@
-@device_family = "KintexUltraScale"
+@device_generation = "UltraScale"
 @device_name = "xcku115"
 @device_package = "-flva1517"
 @device_speed = "-2-i"

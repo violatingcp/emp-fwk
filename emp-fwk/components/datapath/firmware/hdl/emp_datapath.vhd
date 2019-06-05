@@ -17,7 +17,6 @@ use unisim.vcomponents.all;
 use work.ipbus.all;
 use work.ipbus_reg_types.all;
 use work.mp7_ttc_decl.all;
---use work.mp7_readout_decl.all;
 use work.ipbus_decode_emp_datapath.all;
 use work.drp_decl.all;
 
@@ -25,6 +24,7 @@ use work.emp_data_types.all;
 use work.emp_project_decl.all;
 use work.emp_framework_decl.all;
 use work.emp_device_decl.all;
+use work.emp_datapath_utils.all;
 
 entity emp_datapath is
   port(
@@ -76,12 +76,12 @@ architecture rtl of emp_datapath is
 
   --signal dbus_cross : daq_bus;
 
-  signal refclk, refclk_odiv : std_logic_vector(N_REFCLK - 1 downto 0);
-  signal refclk_buf, refclk_mon : std_logic_vector(N_REFCLK - 1 downto 0);
-  signal rxclk_mon, txclk_mon, qplllock : std_logic_vector(31 downto 0);  -- Match range of integer sel
-  signal sel                            : integer range 0 to 31;
-  signal qplllock_sel                   : std_logic;
-  signal ctrs                           : ttc_stuff_array(N_REGION - 1 downto 0);
+  signal refclk, refclk_odiv, refclk_buf : std_logic_vector(N_REFCLK - 1 downto 0);
+  signal refclk_mon, refclk_mon_d        : std_logic_vector(N_REFCLK - 1 downto 0);
+  signal rxclk_mon, txclk_mon, qplllock  : std_logic_vector(31 downto 0);  -- Match range of integer sel
+  signal sel                             : integer range 0 to 31;
+  signal qplllock_sel                    : std_logic;
+  signal ctrs                            : ttc_stuff_array(N_REGION - 1 downto 0);
 
 
   signal ctrs_int  : ttc_stuff_array(N_REGION - 1 downto 0);  -- TTC counters for local logic
@@ -166,220 +166,212 @@ begin
 
   -----------------------------------------------------------------------------
   -- Refclks
-  
-  -- TODO: MGT reclk routing still to be addresed
-  refclk <= (others => '0');
 
   -- Each clock to a GT clock buffer
-  clkgen : for i in N_REFCLK - 1 downto 0 generate
+  clk_gen : for i in N_REFCLK - 1 downto 0 generate
 
-    ibuf : IBUFDS_GTE3
-      port map(
-        i   => refclkp(i),
-        ib  => refclkn(i),
-        --o    => refclk(i), -- commented out waiting for the a better understanding of clocking
-        odiv2 => refclk_odiv(i),
-        ceb   => '0'
+      ibufds_gen : if is_refclk_used(i) generate
+        ibuf : entity work.emp_ibufds_gt
+        port map(
+            refclkp  => refclkp(i),
+            refclkn  => refclkn(i),
+            refclk   => refclk(i),
+            refclk_buf => refclk_buf(i)
         );
+      end generate ibufds_gen;
+
+      ibufds_ngen : if not is_refclk_used(i) generate
+        refclk(i)      <= '0';
+        refclk_odiv(i) <= '0';
+        refclk_buf(i)  <= '0';
+      end generate ibufds_ngen;
+
+    end generate clk_gen;
+    -----------------------------------------------------------------------------
+
+    -----------------------------------------------------------------------------
+    -- Monitoring 
+    refclk_div_gen : if N_REFCLK /= 0 generate
+      div : entity work.freq_ctr_div
+        generic map(
+          N_CLK => N_REFCLK
+          )
+        port map(
+          clk    => refclk_buf,
+          clkdiv => refclk_mon
+          );
+    end generate;
+
+    refclk_div_ngen : if N_REFCLK = 0 generate
+      refclk_mon <= (others => '0');
+    end generate;
+
+    -----------------------------------------------------------------------------
 
 
-    bufg_refclk : BUFG_GT
-      port map(
-        i => refclk_odiv(i),
-        o => refclk_buf(i),
-        ce => '1',
-        clr => '0',
-        div => "000",
-        cemask => '1',
-        clrmask => '0'
-        );
+    -- Clock monitoring
 
-  end generate;
-  -----------------------------------------------------------------------------
+    sel <= to_integer(unsigned(ctrl(0)(7 downto 3)));
 
-  -----------------------------------------------------------------------------
-  -- Monitoring 
-  refclk_div_gen : if N_REFCLK /= 0 generate
-    div : entity work.freq_ctr_div
-      generic map(
-        N_CLK => N_REFCLK
-        )
-      port map(
-        clk    => refclk_buf,
-        clkdiv => refclk_mon
-        );
-  end generate;
+    qplllock(31 downto N_REGION)  <= (others => '0');
+    txclk_mon(31 downto N_REGION) <= (others => '0');
+    rxclk_mon(31 downto N_REGION) <= (others => '0');
 
-  refclk_div_ngen : if N_REFCLK = 0 generate
-    refclk_mon <= (others => '0');
-  end generate;
-  -----------------------------------------------------------------------------
-
-
-  -- Clock monitoring
-
-  sel <= to_integer(unsigned(ctrl(0)(7 downto 3)));
-
-  qplllock(31 downto N_REGION)  <= (others => '0');
-  txclk_mon(31 downto N_REGION) <= (others => '0');
-  rxclk_mon(31 downto N_REGION) <= (others => '0');
-
-  clkmon(0)    <= '0' when (sel >= N_REFCLK or REGION_CONF(sel).refclk = -1) else refclk_mon(REGION_CONF(sel).refclk);
-  clkmon(1)    <= txclk_mon(sel);
-  clkmon(2)    <= rxclk_mon(sel);
-  qplllock_sel <= qplllock(sel);
+    clkmon(0)    <= '0' when (sel >= N_REFCLK or IO_REGION_SPEC(sel).io_refclk = -1) else refclk_mon(IO_REGION_SPEC(sel).io_refclk);
+    clkmon(1)    <= txclk_mon(sel);
+    clkmon(2)    <= rxclk_mon(sel);
+    qplllock_sel <= qplllock(sel);
 
 -- Inter-region chained signals
 
-  process(clk_p)
-  begin
-    if rising_edge(clk_p) then
-      rst_chain_a(0) <= rst_p;
-      ttc_chain_a(0) <= ttc_cmd;
-      l1a_chain_a(0) <= ttc_l1a;
-      tmt_chain_a(0) <= tmt_sync;
+    process(clk_p)
+    begin
+      if rising_edge(clk_p) then
+        rst_chain_a(0) <= rst_p;
+        ttc_chain_a(0) <= ttc_cmd;
+        l1a_chain_a(0) <= ttc_l1a;
+        tmt_chain_a(0) <= tmt_sync;
       --cap_chain_a(0) <= cap_bus;
-    end if;
-  end process;
+      end if;
+    end process;
 
-  process(clk40)
-  begin
-    if rising_edge(clk40) then
-      lock <= lock_chain_b(N_REGION);
-    end if;
-  end process;
+    process(clk40)
+    begin
+      if rising_edge(clk40) then
+        lock <= lock_chain_b(N_REGION);
+      end if;
+    end process;
 
-  lock_chain_a(0) <= '1';
+    lock_chain_a(0) <= '1';
 
 -- Regions
 
-  rgen : for i in 0 to N_REGION - 1 generate
+    rgen : for i in 0 to N_REGION - 1 generate
 
-    constant ih     : integer := 4 * i + 3;
-    constant il     : integer := 4 * i;
-    --signal dbus_out : daq_bus;
-    signal ipbw_loc : ipb_wbus;
-    signal ipbr_loc : ipb_rbus;
+      constant ih     : integer := 4 * i + 3;
+      constant il     : integer := 4 * i;
+      --signal dbus_out : daq_bus;
+      signal ipbw_loc : ipb_wbus;
+      signal ipbr_loc : ipb_rbus;
 
-    signal ref_clk, alt_ref_clk : std_logic;
+      signal ref_clk, alt_ref_clk : std_logic;
 
-  begin
+    begin
 
-    dc : entity work.ipbus_dc_node
-      generic map(
-        I_SLV     => i,
-        SEL_WIDTH => 5,
-        PIPELINE  => (i = CROSS_REGION or i = N_REGION - 1)
-        )
-      port map(
-        clk       => clk,
-        rst       => rst,
-        ipb_out   => ipbw_loc,
-        ipb_in    => ipbr_loc,
-        ipbdc_in  => ipbdc(i),
-        ipbdc_out => ipbdc(i + 1)
-        );
+      dc : entity work.ipbus_dc_node
+        generic map(
+          I_SLV     => i,
+          SEL_WIDTH => 5,
+          PIPELINE  => (i = CROSS_REGION or i = N_REGION - 1)
+          )
+        port map(
+          clk       => clk,
+          rst       => rst,
+          ipb_out   => ipbw_loc,
+          ipb_in    => ipbr_loc,
+          ipbdc_in  => ipbdc(i),
+          ipbdc_out => ipbdc(i + 1)
+          );
 
-    clken_int(i) <= '1';
+      clken_int(i) <= '1';
 
 
-    -- Refclk association
-    no_refclk_gen : if REGION_CONF(i).refclk = -1 generate
-      ref_clk <= '0';
-    end generate;
+      -- Refclk association
+      no_refclk_gen : if reg_has_refclk(i) generate
+        ref_clk <= '0';
+      end generate;
 
-    refclk_gen : if REGION_CONF(i).refclk /= -1 generate
-      ref_clk <= refclk(REGION_CONF(i).refclk);
-    end generate;
+      refclk_gen : if not reg_has_refclk(i) generate
+        ref_clk <= refclk(IO_REGION_SPEC(i).io_refclk);
+      end generate;
 
-    -- Alternate refclk association
-    no_refclk_alt_gen : if REGION_CONF(i).refclk_alt = -1 generate
-      alt_ref_clk <= '0';
-    end generate;
+      -- Alternate refclk association
+      no_refclk_alt_gen : if reg_has_refclk_alt(i) generate
+        alt_ref_clk <= '0';
+      end generate;
 
-    refclk_alt_gen : if REGION_CONF(i).refclk_alt /= -1 generate
-      alt_ref_clk <= refclk(REGION_CONF(i).refclk_alt);
-    end generate;
+      refclk_alt_gen : if not reg_has_refclk_alt(i) generate
+        alt_ref_clk <= refclk(IO_REGION_SPEC(i).io_refclk_alt);
+      end generate;
 
-    region : entity work.emp_region
-      generic map(
-        INDEX => i
-        )
-      port map(
-        clk          => clk,
-        rst          => rst,
-        ipb_in       => ipbw_loc,
-        ipb_out      => ipbr_loc,
-        board_id     => board_id,
-        csel         => ctrl(0)(2 downto 0),
-        clk_p        => clk_p,
-        rst_in       => rst_chain_a(i),
-        rst_out      => rst_chain_b(i + 1),
-        ttc_cmd_in   => ttc_chain_a(i),
-        ttc_cmd_out  => ttc_chain_b(i + 1),
-        ttc_l1a_in   => l1a_chain_a(i),
-        ttc_l1a_out  => l1a_chain_b(i + 1),
-        tmt_sync_in  => tmt_chain_a(i),
-        tmt_sync_out => tmt_chain_b(i + 1),
-        lock_in      => lock_chain_a(i),
-        lock_out     => lock_chain_b(i + 1),
-        ctrs_out     => ctrs_int(i),
-        rst_loc_out  => rst_int(i),
-        --clken_out => clken_out(i),
-        d            => d_int(ih downto il),
-        q            => q_int(ih downto il),
-        refclk       => ref_clk,
-        refclk_alt   => alt_ref_clk,
-        qplllock     => qplllock(i),
-        txclk_mon    => txclk_mon(i),
-        rxclk_mon    => rxclk_mon(i)
-        );
+      region : entity work.emp_region
+        generic map(
+          INDEX => i
+          )
+        port map(
+          clk          => clk,
+          rst          => rst,
+          ipb_in       => ipbw_loc,
+          ipb_out      => ipbr_loc,
+          board_id     => board_id,
+          csel         => ctrl(0)(2 downto 0),
+          clk_p        => clk_p,
+          rst_in       => rst_chain_a(i),
+          rst_out      => rst_chain_b(i + 1),
+          ttc_cmd_in   => ttc_chain_a(i),
+          ttc_cmd_out  => ttc_chain_b(i + 1),
+          ttc_l1a_in   => l1a_chain_a(i),
+          ttc_l1a_out  => l1a_chain_b(i + 1),
+          tmt_sync_in  => tmt_chain_a(i),
+          tmt_sync_out => tmt_chain_b(i + 1),
+          lock_in      => lock_chain_a(i),
+          lock_out     => lock_chain_b(i + 1),
+          ctrs_out     => ctrs_int(i),
+          rst_loc_out  => rst_int(i),
+          --clken_out => clken_out(i),
+          d            => d_int(ih downto il),
+          q            => q_int(ih downto il),
+          refclk       => ref_clk,
+          refclk_alt   => alt_ref_clk,
+          qplllock     => qplllock(i),
+          txclk_mon    => txclk_mon(i),
+          rxclk_mon    => rxclk_mon(i)
+          );
 
-  --end generate;
+      --end generate;
 
 -- MAP X_b(x + 1) to X_a(x + 1)
 
-  --rgen1 : for i in 0 to N_REGION - 1 generate
-    -- Timing / DAQ signals routing
-    pgen : if i = CROSS_REGION generate
-      process(clk_p)
-      begin
-        if rising_edge(clk_p) then
-          rst_chain_a(i + 1)  <= rst_chain_b(i + 1);
-          ttc_chain_a(i + 1)  <= ttc_chain_b(i + 1);
-          l1a_chain_a(i + 1)  <= l1a_chain_b(i + 1);
-          tmt_chain_a(i + 1)  <= tmt_chain_b(i + 1);
-          --cap_chain_a(i + 1)  <= cap_chain_b(i + 1);
-          --daq_chain_a(i + 1)  <= daq_chain_b(i + 1);
-          lock_chain_a(i + 1) <= lock_chain_b(i + 1);
-        end if;
-      end process;
+      --rgen1 : for i in 0 to N_REGION - 1 generate
+      -- Timing / DAQ signals routing
+      pgen : if i = CROSS_REGION generate
+        process(clk_p)
+        begin
+          if rising_edge(clk_p) then
+            rst_chain_a(i + 1)  <= rst_chain_b(i + 1);
+            ttc_chain_a(i + 1)  <= ttc_chain_b(i + 1);
+            l1a_chain_a(i + 1)  <= l1a_chain_b(i + 1);
+            tmt_chain_a(i + 1)  <= tmt_chain_b(i + 1);
+            --cap_chain_a(i + 1)  <= cap_chain_b(i + 1);
+            --daq_chain_a(i + 1)  <= daq_chain_b(i + 1);
+            lock_chain_a(i + 1) <= lock_chain_b(i + 1);
+          end if;
+        end process;
+      end generate;
+
+      npgen : if i /= CROSS_REGION generate
+        rst_chain_a(i + 1)  <= rst_chain_b(i + 1);
+        ttc_chain_a(i + 1)  <= ttc_chain_b(i + 1);
+        l1a_chain_a(i + 1)  <= l1a_chain_b(i + 1);
+        tmt_chain_a(i + 1)  <= tmt_chain_b(i + 1);
+        --cap_chain_a(i + 1)  <= cap_chain_b(i + 1);
+        --daq_chain_a(i + 1)  <= daq_chain_b(i + 1);
+        lock_chain_a(i + 1) <= lock_chain_b(i + 1);
+      end generate;
+      --end generate;
+
+
+      --rgen2 : for i in 0 to N_REGION - 1 generate
+
+      --  constant il : integer := 4 * i;
+      --  constant ih : integer := il + 3;
+
+      --begin
+      d_int(ih downto il) <= d(ih downto il);
+      q(ih downto il)     <= q_int(ih downto il);
+      ctrs_out(i)         <= ctrs_int(i);
+      rst_out(i)          <= rst_int(i);
+      clken_out(i)        <= clken_int(i);
     end generate;
-
-    npgen : if i /= CROSS_REGION generate
-      rst_chain_a(i + 1)  <= rst_chain_b(i + 1);
-      ttc_chain_a(i + 1)  <= ttc_chain_b(i + 1);
-      l1a_chain_a(i + 1)  <= l1a_chain_b(i + 1);
-      tmt_chain_a(i + 1)  <= tmt_chain_b(i + 1);
-      --cap_chain_a(i + 1)  <= cap_chain_b(i + 1);
-      --daq_chain_a(i + 1)  <= daq_chain_b(i + 1);
-      lock_chain_a(i + 1) <= lock_chain_b(i + 1);
-    end generate;
-  --end generate;
-
-
-  --rgen2 : for i in 0 to N_REGION - 1 generate
-
-  --  constant il : integer := 4 * i;
-  --  constant ih : integer := il + 3;
-
-  --begin
-    d_int(ih downto il) <= d(ih downto il);
-    q(ih downto il)     <= q_int(ih downto il);
-    ctrs_out(i)         <= ctrs_int(i);
-    rst_out(i)          <= rst_int(i);
-    clken_out(i)        <= clken_int(i);
-  end generate;
-
 
 end rtl;

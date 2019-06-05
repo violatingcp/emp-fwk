@@ -1,0 +1,5 @@
+include interface_common.dep
+
+# Low level back-end link code (gty only)
+include -c components/links/be_mgt/common common_gty.dep
+

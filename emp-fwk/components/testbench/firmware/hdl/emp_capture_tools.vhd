@@ -39,28 +39,32 @@ package emp_capture_tools is
   type DataPipe_t is array(natural range <>) of ldata(N_LINKS - 1 downto 0);  -- ( timeslice )( link number )
   --type LinkIdArray_t is array(N_LINKS - 1 downto 0) of integer range -1 to N_LINKS - 1;  -- (-1 : not present)
 
-  constant kIdleWord : lword := (X"50505050505050bc", '0', '0', '1');
+  constant kIdleWord  : lword                       := (X"5555555555bcbcbc", '0', '0', '1');
   constant kEmptyData : ldata(N_LINKS - 1 downto 0) := (others => kIdleWord);
 
-  type CurrentReadState_t is(Uninitialized, Gap, Payload, Flushing, Finished);
+  type CurrentReadState_t is(Uninitialized, Payload, Flushing, Finished);
 
-  procedure SourceEMPDataFile(aFileName       : in    string;
-                              aDataPipe       : inout DataPipe_t;
-                              aPlaybackFrames : in    integer := 0;
-                              aGapLength      : in    integer := 0;
-                              aDebugMessages  : in    boolean := false
+  -- --------------------------------------------------------------------------
+  procedure SourceEMPDataFile(aFileName        : in    string;
+                              aDataPipe        : inout DataPipe_t;
+                              aNumFramesInPipe : inout natural;
+                              aDebugMessages   : in    boolean := false
                               );
 
 
+  -- --------------------------------------------------------------------------
   procedure DataStimulus(
-      variable aClkCount       : in  integer;
--- -------------
-      variable aDataPipe       : in  DataPipe_t;
-      signal aPayloadD         : out ldata(N_LINKS - 1 downto 0);
--- -------------
-      variable aPlaybackOffset : in  integer := 0;
-      variable aStripHeader    : in  boolean := false
-  );
+      variable aClkCount        : in  integer;
+      variable aDataPipe        : in  DataPipe_t;
+      variable aNumFramesInPipe : in  natural;
+      variable aPlaybackLength  : in  natural := 0;
+      variable aPlaybackOffset  : in  natural := 0;
+      variable aPlaybackLoop    : in  boolean := false;
+      variable aStripHeader     : in  boolean := false;
+      aDebugMessages            : in  boolean := false;
+      -- -----------------------------------------------------
+      signal aPayloadD          : out ldata(N_LINKS-1 downto 0)
+    );
 
 end package emp_capture_tools;
 -- -------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -71,17 +75,15 @@ end package emp_capture_tools;
 package body emp_capture_tools is
 
 -- ----------------------------------------------------------
-  procedure SourceEMPDataFile(aFileName       : in    string;
-                              aDataPipe       : inout DataPipe_t;
-                              aPlaybackFrames : in    integer := 0;
-                              aGapLength      : in    integer := 0;
-                              aDebugMessages  : in    boolean := false
+  procedure SourceEMPDataFile(aFileName        : in    string;
+                              aDataPipe        : inout DataPipe_t;
+                              aNumFramesInPipe : inout natural;
+                              aDebugMessages   : in    boolean := false
                               ) is
     variable L, DEBUG         : line;
     file InFile               : text;
     variable CurrentReadState : CurrentReadState_t := Uninitialized;
     variable lCounter, lFrame : integer            := 0;
-    variable lPayloadLength   : integer;
     variable lNCols           : natural;
     variable lLinkIds         : LinkIdArray_t      := (others => -1);
 
@@ -89,14 +91,7 @@ package body emp_capture_tools is
 -- -----------------------------------------------------------------------------------------------------
 
 -- Open File
-    FILE_OPEN(InFile, aFileName, read_mode);
-
---
-    if aPlaybackFrames > 0 then
-      lPayloadLength := aDataPipe'length;
-    else
-      lPayloadLength := aPlaybackFrames;
-    end if;
+    file_open(InFile, aFileName, read_mode);
 
 -- Debug
     if aDebugMessages then
@@ -134,37 +129,12 @@ package body emp_capture_tools is
     CurrentReadState := Payload;
     lCounter         := 0;
 
-    -- early exit
-    --return;
-
-    inf_loop : loop
-
-      -- Break if EOF (future) or if the frame counter overruns the length of datapipe
-      if endfile(InFile) or lFrame >= aDataPipe'length then
-        CurrentReadState := Finished;
-        return;
-      end if;
+    inf_loop : while not (endfile(InFile) or lFrame >= aDataPipe'length) loop
 
       READLINE(InFile, L);
-      trim(L, side=>both);
+      trim(L, side => both);
 
       case CurrentReadState is
--- ----------------------------------------------
-        when Gap =>
--- Debug
-          if aDebugMessages then
-            WRITE(DEBUG, string' ("GAP : "));
-            WRITE(DEBUG, lCounter);
-            WRITELINE(OUTPUT, DEBUG);
-          end if;
--- We will return empty LinkData
-          if lCounter = (aGapLength-1) then
--- We are changing state
-            CurrentReadState := Payload;
-            lCounter         := 0;
-          else
-            lCounter := lCounter + 1;
-          end if;
 -- ----------------------------------------------
         when Payload =>
           if L'length = 0 then
@@ -179,13 +149,7 @@ package body emp_capture_tools is
               WRITE(DEBUG, aDataPipe(lFrame));
               WRITELINE(OUTPUT, DEBUG);
             end if;
-            if lCounter = (lPayloadLength-1) then
-              -- We are changing state
-              CurrentReadState := Gap;
-              lCounter         := 0;
-            else
-              lCounter := lCounter + 1;
-            end if;
+            lCounter := lCounter + 1;
           end if;
 -- ----------------------------------------------
         when Flushing =>
@@ -203,7 +167,14 @@ package body emp_capture_tools is
 
     end loop;
 -- -----------------------------------------------------------------------------------------------------
-    FILE_CLOSE(InFile);
+    file_close(InFile);
+
+    aNumFramesInPipe := lCounter;
+    WRITE(DEBUG, string' (" Loaded frames "));
+    WRITE(DEBUG, aNumFramesInPipe);
+    WRITELINE(output, DEBUG);
+
+    return;
 
   end procedure SourceEMPDataFile;
 -- ----------------------------------------------------------
@@ -213,25 +184,58 @@ package body emp_capture_tools is
 -- -----------------------------------------------------------------------------------------------------
   procedure DataStimulus
     (
-      variable aClkCount       : in  integer;
--- -------------
-      variable aDataPipe       : in  DataPipe_t;
-      signal aPayloadD         : out ldata(N_LINKS-1 downto 0);
--- -------------
-      variable aPlaybackOffset : in  integer := 0;
-      variable aStripHeader    : in  boolean := false
-      ) is
+      variable aClkCount        : in  integer;
+      variable aDataPipe        : in  DataPipe_t;
+      variable aNumFramesInPipe : in  natural;
+      variable aPlaybackLength  : in  natural := 0;
+      variable aPlaybackOffset  : in  natural := 0;
+      variable aPlaybackLoop    : in  boolean := false;
+      variable aStripHeader     : in  boolean := false;
+      aDebugMessages            : in  boolean := false;
+      -- -----------------------------------------------------
+      signal aPayloadD          : out ldata(N_LINKS-1 downto 0)
+    ) is
 
-    variable lFrame     : integer   := 0;
-    variable lLastValid : std_logic := '0';
-
-    --CONSTANT kIdleWord         : lword := ((others => '0'), '0', '0', '0');
-    --constant kIdleWord : lword := (X"50505050505050bc", '0', '0', '1');
+    variable lPlaybackLength    : natural   := aPlaybackLength;
+    variable lFrame             : integer   := 0;
+    variable lLastValid         : std_logic := '0';
+    variable L, DEBUG           : line;
 
   begin
 -- -----------------------------------------------------------------------------------------------------
-    lFrame := aClkCount-aPlaybackOffset;
-    if (lFrame >= 0 and lFrame < aDataPipe'length) then
+  
+
+    if aClkCount < 0 then
+      if aDebugMessages then
+        WRITE(DEBUG, string' ("Reset is high (clk_count ="));
+        WRITE(DEBUG, aClkCount);
+        WRITE(DEBUG, string' (") - padding with idles"));
+        WRITELINE(OUTPUT, DEBUG);
+      end if;
+      aPayloadD <= (others => kIdleWord);
+      return;
+    end if;    
+    -- Fall back on the total number of frames in pipe if caplen == 0
+    if lPlaybackLength = 0 then
+      lPlaybackLength := aNumFramesInPipe;
+    end if;
+
+    -- Calculate the current framed based on the loop mode flag
+    if aPlaybackLoop then
+      lFrame := (aClkCount-aPlaybackOffset) mod lPlaybackLength;
+    else
+      lFrame := (aClkCount-aPlaybackOffset);
+    end if;
+
+    if aDebugMessages then
+      WRITE(DEBUG, string' ("Playing frame : "));
+      WRITE(DEBUG, lFrame);
+      WRITE(DEBUG, string' (" in clock cycle "));
+      WRITE(DEBUG, aClkCount);
+      WRITELINE(OUTPUT, DEBUG);
+    end if;
+
+    if (lFrame >= 0 and (lFrame < lPlaybackLength and lFrame < aNumFramesInPipe))  then
 
       --aPayloadD <= aDataPipe(lFrame);
       for i in 0 to N_LINKS-1 loop

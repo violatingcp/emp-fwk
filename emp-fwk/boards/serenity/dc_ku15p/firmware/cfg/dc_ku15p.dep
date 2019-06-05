@@ -1,0 +1,27 @@
+@device_generation = "UltraScalePlus"
+@device_name = "xcku15p"
+@device_package = "-ffva1760"
+@device_speed = "-2-e"
+@boardname = "serenity-dc-ku15p"
+
+
+src --cd ../ucf area_constraints.tcl
+
+# Top level 
+include -c components/utils slim_top.dep
+
+# Import Serenity's common blocks
+src --cd ../ucf clock_constraints.tcl
+include -c boards/serenity/common
+
+# Customise the XDMA core location
+setup -f xdma_loc.tcl
+src --cd ../ucf xdma_constraints.tcl
+src --cd ../ucf pins.tcl 
+
+# Device declaration
+src emp_device_decl.vhd
+
+# Include links
+include -c components/links/be_mgt/interface interface_gth.dep
+include -c components/links/be_mgt/interface interface_gty.dep

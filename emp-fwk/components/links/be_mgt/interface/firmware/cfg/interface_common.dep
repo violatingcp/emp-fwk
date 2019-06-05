@@ -1,0 +1,12 @@
+
+# IPBus interface to back-end links
+src emp_be_mgt.vhd
+
+addrtab emp_be_mgt.xml
+
+# IPBus dependecies
+include -c ipbus-firmware:components/ipbus_slaves syncreg_v.dep
+src -c ipbus-firmware:components/ipbus_slaves ipbus_drp_bridge.vhd
+src -c ipbus-firmware:components/ipbus_slaves drp_decl.vhd
+src -c ipbus-firmware:components/ipbus_slaves ipbus_reg_v.vhd ipbus_ctrlreg_v.vhd
+src -c ipbus-firmware:components/ipbus_slaves ipbus_reg_types.vhd

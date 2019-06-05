@@ -1,2 +1,0 @@
-src emp_ttc.vhd us/emp_ttc_clocks.vhd
-include ttc_common.dep

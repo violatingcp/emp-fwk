@@ -17,7 +17,7 @@ package ipbus_decode_emp_region is
   subtype ipbus_sel_t is std_logic_vector(IPBUS_SEL_WIDTH - 1 downto 0);
   function ipbus_sel_emp_region(addr : in std_logic_vector(31 downto 0)) return ipbus_sel_t;
 
--- START automatically  generated VHDL the Tue Aug 14 11:04:19 2018 
+-- START automatically  generated VHDL the Tue Mar 12 21:23:53 2019 
   constant N_SLV_BUFFER: integer := 0;
   constant N_SLV_FORMATTER_CSR: integer := 1;
   constant N_SLV_ALIGN: integer := 2;
@@ -36,15 +36,15 @@ package body ipbus_decode_emp_region is
     variable sel: ipbus_sel_t;
   begin
 
--- START automatically  generated VHDL the Tue Aug 14 11:04:19 2018 
+-- START automatically  generated VHDL the Tue Mar 12 21:23:53 2019 
     if    std_match(addr, "---------------------00--0-00---") then
       sel := ipbus_sel_t(to_unsigned(N_SLV_BUFFER, IPBUS_SEL_WIDTH)); -- buffer / base 0x00000000 / mask 0x00000658
     elsif std_match(addr, "---------------------00--0-01---") then
       sel := ipbus_sel_t(to_unsigned(N_SLV_FORMATTER_CSR, IPBUS_SEL_WIDTH)); -- formatter.csr / base 0x00000008 / mask 0x00000658
     elsif std_match(addr, "---------------------00--0-10---") then
       sel := ipbus_sel_t(to_unsigned(N_SLV_ALIGN, IPBUS_SEL_WIDTH)); -- align / base 0x00000010 / mask 0x00000658
-    elsif std_match(addr, "---------------------00--1------") then
-      sel := ipbus_sel_t(to_unsigned(N_SLV_MGT, IPBUS_SEL_WIDTH)); -- mgt / base 0x00000040 / mask 0x00000640
+    elsif std_match(addr, "---------------------00--1-00---") then
+      sel := ipbus_sel_t(to_unsigned(N_SLV_MGT, IPBUS_SEL_WIDTH)); -- mgt / base 0x00000040 / mask 0x00000658
     elsif std_match(addr, "---------------------01---------") then
       sel := ipbus_sel_t(to_unsigned(N_SLV_DRP, IPBUS_SEL_WIDTH)); -- drp / base 0x00000200 / mask 0x00000600
     elsif std_match(addr, "---------------------10---------") then

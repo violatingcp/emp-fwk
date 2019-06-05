@@ -1,4 +1,5 @@
+src -c components/datapath --cd ../ucf mgt_constraints_toolbox.tcl region_constraints_toolbox.tcl
+
 include datapath_common.dep
 
-addrtab dummy_links.xml
 include -c mp7:components/mp7_links mp7_drp_gth_addrtab.dep

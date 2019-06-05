@@ -1,0 +1,2 @@
+src emp_be_dummy.vhd
+src -c ipbus-firmware:components/ipbus_slaves ipbus_reg_types.vhd

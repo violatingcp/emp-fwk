@@ -20,9 +20,9 @@ use work.emp_device_decl.all;
 --! @details Detailed description
 entity EMPCaptureFileReader is
   generic(gFileName       :    string;
-          gPlaybackFrames :    integer := 0;
-          gPlaybackOffset :    integer := 0;
-          gFileBufferSize :    integer := 1024;
+          gPlaybackLength :    natural := 0;
+          gPlaybackOffset :    natural := 0;
+          gPlaybackLoop   :    boolean := false;
           gStripHeader    :    boolean := false;
           gDebugMessages  : in boolean := false
           );
@@ -37,16 +37,48 @@ end entity EMPCaptureFileReader;
 --! @details Detailed description
 architecture behavioral of EMPCaptureFileReader is
 
+-- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+-- Helper function to calculate the size of the file
+  impure function get_line_count return positive is
+      file file_pointer : text;
+      variable line_data, debug : line;
+      variable lineCount : natural := 0;
+  begin
+      file_open(file_pointer, gFileName, read_mode);
+      while not endfile(file_pointer) loop
+          readline(file_pointer, line_data);
+          lineCount := lineCount + 1;
+      end loop;
+      file_close(file_pointer);
+
+
+      write(debug, string' ("Source file length: "));
+      write(debug, lineCount);
+      writeline(output, debug);
+      write(debug, string' ("       file path: "));
+      write(debug, gFileName);
+      writeline(output, debug);
+
+      return lineCount;
+  end function get_line_count;
+-- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+  constant kMemorySize : positive := get_line_count;
+  -- To be continued. see here
+  --https://stackoverflow.com/questions/42583061/vhdl-arrays-how-do-i-declare-an-array-of-unknown-size-and-use-it
 begin
 
   process(clk)
-    variable lInitialised    : boolean                                  := false;
+    variable lInitialised     : boolean                              := false;
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    variable lClkCount       : integer                                  := -1;
-    variable lDataPipe       : DataPipe_t(gFileBufferSize - 1 downto 0) := (others => kEmptyData);
+    variable lClkCount        : integer                              := -1;
+    variable lDataPipe        : DataPipe_t(kMemorySize - 1 downto 0) := (others => kEmptyData);
+    variable lNumFramesInPipe : natural                              := 0;
     -- Conversion from generics to variables
-    variable lPlaybackOffset : integer                                  := gPlaybackOffset;
-    variable lStripHeader    : boolean                                  := gStripHeader;
+    variable lPlaybackOffset  : natural                              := gPlaybackOffset;
+    variable lPlaybackLength  : natural                              := gPlaybackLength;
+    variable lStripHeader     : boolean                              := gStripHeader;
+    variable lPlaybackLoop    : boolean                              := gPlaybackLoop;
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
   begin
 
@@ -55,10 +87,10 @@ begin
       -- First iteration, load the file    
       if (lInitialised = false) then
         SourceEMPDataFile(
-          aFileName       => gFileName,
-          aDataPipe       => lDataPipe,
-          aPlaybackFrames => gPlaybackFrames,
-          aDebugMessages  => gDebugMessages
+          aFileName        => gFileName,
+          aDataPipe        => lDataPipe,
+          aNumFramesInPipe => lNumFramesInPipe,
+          aDebugMessages   => gDebugMessages
           );
         lInitialised := true;
       end if;
@@ -66,11 +98,15 @@ begin
 -- -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
       DataStimulus
         (
-          aClkCount       => lClkCount,
-          aDataPipe       => lDataPipe,
-          aPayloadD       => LinkData,
-          aPlaybackOffset => lPlaybackOffset,
-          aStripHeader    => lStripHeader
+          aClkCount        => lClkCount,
+          aDataPipe        => lDataPipe,
+          aNumFramesInPipe => lNumFramesInPipe,
+          aPlaybackLength  => lPlaybackLength,
+          aPlaybackOffset  => lPlaybackOffset,
+          aPlaybackLoop    => lPlaybackLoop,
+          aStripHeader     => lStripHeader,
+          aDebugMessages   => gDebugMessages,
+          aPayloadD        => LinkData
           );
 
       if rst = '1' then

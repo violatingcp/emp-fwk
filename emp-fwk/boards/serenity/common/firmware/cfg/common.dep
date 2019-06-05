@@ -1,0 +1,9 @@
+
+src emp_slim_top_decl.vhd
+
+src --cd ../ucf clock_constraints.tcl
+? device_generation == "UltraScale"     ? src --cd ../ucf/us bitstream_settings.tcl
+? device_generation == "UltraScalePlus" ? src --cd ../ucf/usp bitstream_settings.tcl
+
+
+

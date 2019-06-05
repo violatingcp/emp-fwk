@@ -1,6 +1,0 @@
-src pcie_dma_if.vhd
-?toolset=="Vivado"? src ../cgn/xdma/xdma_0.xci
-src pcie_decl.vhd
-?toolset=="Vivado"? src ../cgn/axi_bram_ctrl_0/axi_bram_ctrl_0.xci
-?toolset=="Vivado"? src ../cgn/blk_mem_gen_0/blk_mem_gen_0.xci
-src pcie_int_gen_msix.vhd

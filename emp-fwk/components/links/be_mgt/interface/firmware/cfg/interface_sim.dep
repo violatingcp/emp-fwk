@@ -1,0 +1,1 @@
+include -c components/links/be_mgt/sim dummy_links.dep

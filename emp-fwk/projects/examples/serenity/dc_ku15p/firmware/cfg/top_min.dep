@@ -1,0 +1,3 @@
+include -c components/payload emp_simple_payload.dep
+include -c boards/serenity/dc_ku15p
+src dc_ku15p_decl_min.vhd

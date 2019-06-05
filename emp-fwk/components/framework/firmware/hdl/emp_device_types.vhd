@@ -23,12 +23,10 @@ package emp_device_types is
     buf_o_kind : buf_kind_t;
     chk_o_kind : chk_kind_t;
     mgt_o_kind : mgt_kind_t; -- Currently unused
-    refclk     : integer range -1 to N_REFCLK - 1;
-    refclk_alt : integer range -1 to N_REFCLK - 1;
   end record;
 
   -- Dummy, empty region
-  constant kDummyRegion : region_conf_t := (no_mgt, no_chk, no_buf, no_fmt, no_buf, no_chk, no_mgt, -1, -1);
+  constant kDummyRegion : region_conf_t := (no_mgt, no_chk, no_buf, no_fmt, no_buf, no_chk, no_mgt);
 
   -- Region configuration array type
   type region_conf_array_t is array(0 to N_REGION - 1) of region_conf_t;

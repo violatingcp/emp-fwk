@@ -1,0 +1,38 @@
+## add wrapper
+src async_mgt_wrapper.vhd
+
+## add design sources
+src gtwizard_ultrascale_top.vhd
+src add_padding_and_prbs_data.vhd
+src data_quality_with_idle.vhd
+src initialization_fsm.vhd
+src bit_synchronizer.vhd
+src links_crc_rx.vhd
+src links_crc_tx.vhd
+src link_status.vhd
+src reset_synchronizer.vhd
+src rx_fifo_cdc.vhd
+src ttc_prbs_checker.vhd
+src tx_fifo_cdc.vhd
+src tx_fifo_pkg.vhd
+src tx_fifo_top.vhd
+src aurora_scrambler.vhd
+src aurora_descrambler.vhd
+src bit_synchronizer.vhd
+src ultrascale_checking_64b66b.vhd
+src ultrascale_fifo_stimulus_64b66b.vhd
+src ultrascale_stimulus_64b66b.vhd
+src vio_bit_synchronizers.vhd
+src ucrc_par.vhd
+src ucrc_pkg.vhd
+
+## xilinx generated files
+src ../gen_hdl/gtwizard_ultrascale_0_prbs_any.v
+src ../gen_hdl/aurora_64b66b_scrambler.v
+src ../gen_hdl/aurora_64b66b_descrambler.v
+
+## add ip cores
+?toolset=="Vivado"? include tx_fifo.dep
+?toolset=="Vivado"? src ../cgn/bram_rx_buffer/bram_rx_buffer.xci
+
+## add constraints

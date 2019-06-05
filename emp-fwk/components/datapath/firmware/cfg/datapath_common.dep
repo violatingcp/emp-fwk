@@ -1,12 +1,15 @@
-
-src --cd ../ucf constraints_utils.tcl
 src emp_datapath.vhd
 src ipbus_decode_emp_datapath.vhd
 addrtab -t emp_datapath.xml
+
+# Region stuff
 addrtab -c mp7:components/mp7_datapath region_info.xml
 src -c mp7:components/mp7_datapath region_info.vhd
+
+# Moved to ipbus, maybe
 src -c mp7:components/mp7_ttc freq_ctr_div.vhd
 src emp_region.vhd
+src emp_datapath_utils.vhd
 src ipbus_decode_emp_region.vhd
 addrtab -t emp_region.xml
 src -c mp7:components/mp7_datapath align_mon.vhd
@@ -14,7 +17,11 @@ include -c ipbus-firmware:components/ipbus_slaves syncreg_v.dep
 addrtab -c mp7:components/mp7_datapath align_mon.xml
 src -c ipbus-firmware:components/ipbus_util del_array.vhd
 src -c mp7:components/mp7_ttc bunch_ctr.vhd
+
+# Links?
 src -c mp7:components/mp7_links common/drp_mux.vhd
+
+# Buffers
 src emp_chan_buffer.vhd
 # src -c mp7:components/mp7_datapath mp7_derand.vhd mp7_daqmux.vhd
 src -c ipbus-firmware:components/ipbus_util del_array.vhd
@@ -22,11 +29,20 @@ src -c ipbus-firmware:components/ipbus_slaves ipbus_drp_bridge.vhd
 src -c ipbus-firmware:components/ipbus_slaves drp_decl.vhd
 src ipbus_decode_emp_chan_buffer.vhd
 addrtab -t emp_chan_buffer.xml
+
+# Refclocks
+? device_generation == "UltraScale"     ? src --cd us  emp_ibufds_gt.vhd 
+? device_generation == "UltraScalePlus" ? src --cd usp emp_ibufds_gt.vhd
+
 # include -c mp7:components/mp7_formatter
 addrtab -c mp7:components/mp7_formatter mp7_formatter.xml
+
+# Declarations
 src -c components/ttc mp7_ttc_decl.vhd
 # src -c mp7:components/mp7_readout mp7_readout_decl.vhd
 src emp_data_types.vhd
+
+
 src -c ipbus-firmware:components/ipbus_slaves ipbus_reg_v.vhd ipbus_ctrlreg_v.vhd ipbus_ported_dpram72.vhd
 src -c ipbus-firmware:components/ipbus_core ipbus_fabric_sel.vhd ipbus_dc_fabric_sel.vhd ipbus_dc_node.vhd
 src -c ipbus-firmware:components/ipbus_slaves ipbus_reg_types.vhd

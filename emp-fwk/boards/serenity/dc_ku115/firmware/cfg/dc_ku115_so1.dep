@@ -1,0 +1,24 @@
+@device_generation = "UltraScale"
+@device_name = "xcku115"
+@device_package = "-flvd1517"
+@device_speed = "-2-i"
+@boardname = "serenity-dc-ku115-so1"
+
+
+src --cd ../ucf area_constraints.tcl
+
+# Top level 
+include -c components/utils slim_top.dep
+
+# Import Serenity's common blocks
+include -c boards/serenity/common
+
+# Customise the XDMA core location
+setup -f xdma_loc.tcl
+src --cd ../ucf pins_so1.tcl
+
+# Device declaration
+src emp_device_decl_so1.vhd
+
+# Add links support
+include -c components/links/be_mgt/interface interface_gth.dep

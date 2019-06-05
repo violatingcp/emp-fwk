@@ -1,0 +1,7 @@
+# IP generated for the vu9p fpgas
+? device_name.startswith("xcvu") ? src --cd ../cgn/gtwizard_ultrascale_gty25g/vup gtwizard_ultrascale_gty25g.xci
+
+# IP dedicated for the ku15p fpgas
+? device_name.startswith("xcku") ? src --cd ../cgn/gtwizard_ultrascale_gty25g/kup gtwizard_ultrascale_gty25g.xci
+
+setup -f --cd ../cgn/gtwizard_ultrascale_gty25g gtwizard_ultrascale_gty25g.tcl

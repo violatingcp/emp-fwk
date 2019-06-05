@@ -1,4 +1,4 @@
-@device_family = "VirtexUltraScalePlus"
+@device_generation = "UltraScalePlus"
 @device_name = "xcvu9p"
 @device_package = "-flga2104"
 @device_speed = "-2L-e"

@@ -1,0 +1,5 @@
+set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
+set_property BITSTREAM.CONFIG.SPI_FALL_EDGE YES [current_design]
+set_property BITSTREAM.CONFIG.CONFIGRATE 72.9 [current_design]
+set_property BITSTREAM.CONFIG.SPI_32BIT_ADDR YES [current_design]
+set_property CONFIG_MODE SPIx8 [current_design]

@@ -1,0 +1,5 @@
+## mgt cores 
+include -c components/links/be_mgt/gty_16g gty_16g_ip.dep
+include -c components/links/be_mgt/gty_25g gty_25g_ip.dep
+
+include common.dep

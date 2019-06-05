@@ -1,0 +1,3 @@
+src --cd ../cgn/tx_fifo tx_fifo.xci
+setup -f --cd ../cgn/tx_fifo tx_fifo.tcl
+

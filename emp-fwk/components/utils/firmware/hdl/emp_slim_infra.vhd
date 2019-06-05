@@ -113,7 +113,7 @@ begin
       I => pcie_sys_rst_n
       );
 
-  us_clocks : entity work.emp_clocks
+  int_clocks : entity work.emp_clocks
     port map (
       sys_clk_p    => pcie_sys_clk_p,
       sys_clk_n    => pcie_sys_clk_n,

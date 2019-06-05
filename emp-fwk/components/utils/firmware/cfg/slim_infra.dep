@@ -1,0 +1,11 @@
+
+src emp_slim_infra.vhd
+? device_generation == "UltraScale"     ? src --cd us emp_clocks.vhd emp_oscclk.vhd
+? device_generation == "UltraScalePlus" ? src --cd usp emp_clocks.vhd emp_oscclk.vhd
+
+include -c components/pcie_dma
+
+include -c components/ipbus_pcie
+
+include -c ipbus-firmware:components/ipbus_core
+

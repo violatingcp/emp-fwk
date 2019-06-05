@@ -30,7 +30,7 @@ package emp_project_decl is
 
   -- mgt -> chk -> buf -> fmt -> (algo) -> (fmt) -> buf -> chk -> mgt -> clk -> altclk
   constant REGION_CONF : region_conf_array_t := (
-    0  => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt, -1, -1),
+    0  => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt),
     ---- Cross-chip
     others => kDummyRegion
     );

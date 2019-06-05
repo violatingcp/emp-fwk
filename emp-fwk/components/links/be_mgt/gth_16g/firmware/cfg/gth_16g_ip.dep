@@ -1,0 +1,3 @@
+
+src --cd ../cgn/gtwizard_ultrascale_gth16g gtwizard_ultrascale_gth16g.xci
+setup -f --cd ../cgn/gtwizard_ultrascale_gth16g gtwizard_ultrascale_gth16g.tcl

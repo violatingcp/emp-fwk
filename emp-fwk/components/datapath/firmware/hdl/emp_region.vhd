@@ -20,6 +20,7 @@ use work.emp_framework_decl.all;
 use work.emp_project_decl.all;
 use work.emp_device_decl.all;
 use work.emp_device_types.all;
+use work.emp_datapath_utils.all;
 
 -------------------------------------------------------------------------------
 entity emp_region is
@@ -89,7 +90,7 @@ architecture rtl of emp_region is
   signal buf_rst, buf_inc, buf_dec, align_marker : std_logic_vector(3 downto 0);
   signal rxclk_mon_q                             : std_logic_vector(3 downto 0);
 
-  signal daq_act   : std_logic;
+  signal daq_act : std_logic;
   --signal dbus_chan : daq_bus_array(8 downto 0);
   --signal dbus_out  : daq_bus;
 
@@ -241,33 +242,31 @@ begin
 
   end generate;
 
-  assert 
-    -- Either a tracnsciever-equipped region
-    IO_GT_REGIONS(INDEX) = io_gt or (
-      -- or both mgts need to be null
-      REGION_CONF(INDEX).mgt_i_kind = no_mgt and
-      REGION_CONF(INDEX).mgt_o_kind = no_mgt
-    )
-    report 
-      "Region " & integer'image(INDEX) & " - " &
-      "Cannot allocate MGTs in current region: no physical GT interface is present. " & lf &
-      " - mgt_i_kind: '" & mgt_kind_t'image(REGION_CONF(INDEX).mgt_i_kind) & "', " & lf &
-      " - mgt_o_kind: '" & mgt_kind_t'image(REGION_CONF(INDEX).mgt_o_kind) & "', " & lf &
-      " - io_gt_kind: '" & io_gt_kind_t'image(IO_GT_REGIONS(INDEX)) & "'"
+
+  -- 1) Check Rx & Tx MGT & CRC type match. 
+  assert
+    --REGION_CONF(INDEX).mgt_i_kind = REGION_CONF(INDEX).mgt_o_kind
+    is_mgt_symmetric(INDEX)
+    report
+    "Region " & integer'image(INDEX) & " - " &
+    "The use of different Tx & Rx MGTs is not supported yet"
+    severity failure;
+  assert
+    is_mgt_compatible_with_site(INDEX)
+    report
+    "Region " & integer'image(INDEX) & " - " &
+    "Cannot allocate MGTs in current region: the requested mgt kind is not compatible with the site. " & lf &
+    " - mgt_i_kind: '" & mgt_kind_t'image(REGION_CONF(INDEX).mgt_i_kind) & "', " & lf &
+    " - mgt_o_kind: '" & mgt_kind_t'image(REGION_CONF(INDEX).mgt_o_kind) & "', " & lf &
+    " - io_gt_kind: '" & io_gt_kind_t'image(IO_REGION_SPEC(INDEX).io_gt_kind) & "'"
     severity failure;
 
--- Check Rx & Tx MGT & CRC type match. 
-  assert 
-    REGION_CONF(INDEX).mgt_i_kind = REGION_CONF(INDEX).mgt_o_kind 
-    report 
-      "Region " & integer'image(INDEX) & " - " &
-      "The use of different Tx & Rx MGTs is not supported yet"
-    severity failure;
-  assert 
-    REGION_CONF(INDEX).chk_i_kind = REGION_CONF(INDEX).chk_o_kind 
-    report 
-      "Region " & integer'image(INDEX) & " - " &
-      "The use of different Tx & Rx CRCs/Checksums is not supported yet" 
+
+  assert
+    is_chksum_symmetric(INDEX)
+    report
+    "Region " & integer'image(INDEX) & " - " &
+    "The use of different Tx & Rx CRCs/Checksums is not supported yet"
     severity failure;
 
 
@@ -292,6 +291,47 @@ begin
 
   end generate;
 
+
+-- MGTs Instatiation 
+-- GTH16g, GTY16g, GTY25g  
+  mgt_gen : if REGION_CONF(INDEX).mgt_i_kind /= no_mgt generate
+
+    signal rxn_in  : std_logic_vector(3 downto 0);
+    signal rxp_in  : std_logic_vector(3 downto 0);
+    signal txn_out : std_logic_vector(3 downto 0);
+    signal txp_out : std_logic_vector(3 downto 0);
+
+  begin
+    be_mgt_inst : entity work.emp_be_mgt
+      generic map(
+        INDEX => INDEX
+        )
+      port map(
+        clk     => clk,
+        rst     => rst,
+        ipb_in  => ipbw(N_SLV_MGT),
+        ipb_out => ipbr(N_SLV_MGT),
+
+        top_mgtrefclk0 => refclk,
+        ttc_clk_in     => clk_p,
+        stable_clk_in  => clk,
+
+        rxn_in         => rxn_in,
+        rxp_in         => rxp_in,
+        txn_out        => txn_out,
+        txp_out        => txp_out,
+        buf_rst_in     => buf_rst,
+        buf_ptr_inc_in => buf_inc,
+        buf_ptr_dec_in => buf_dec,
+--        qplllock       => qplllock,
+
+        txdata_in  => mgt_d,
+        rxdata_out => mgt_q
+        );
+
+  end generate;
+
+
 -- Buffers
 
   bgen : if REGION_CONF(INDEX).buf_i_kind = buf or REGION_CONF(INDEX).buf_o_kind = buf generate
@@ -315,35 +355,35 @@ begin
 
     buf_gen : for j in 0 to 7 generate
 
-      constant id                                             : integer := 8 * INDEX + j;
-      constant iw                                             : integer := j / 2;
+      constant id   : integer := 8 * INDEX + j;
+      constant iw   : integer := j / 2;
       --signal rx_dbus_in, rx_dbus_out, tx_dbus_in, tx_dbus_out : daq_bus;
-      signal db, qb                                           : lword;
+      signal db, qb : lword;
       --signal dbus_in, dbus_out                                : daq_bus;
 
     begin
 
-      cbuf_gen : if (REGION_CONF(INDEX).buf_i_kind = buf and j rem 2 = 0) or (REGION_CONF(INDEX).buf_o_kind = buf and j rem 2 = 1) generate
+      cbuf_gen : if (REGION_CONF(INDEX).buf_i_kind = buf and (j rem 2 = 0)) or (REGION_CONF(INDEX).buf_o_kind = buf and (j rem 2 = 1)) generate
 
         buf : entity work.emp_chan_buffer
           generic map (
             INDEX => id
             )
           port map(
-            clk         => clk,
-            rst         => rst,
-            ipb_in      => ipbw_b(j),
-            ipb_out     => ipbr_b(j),
-            clk_p       => clk_p,
-            rst_p       => rst_p,
-            orb         => octr,
-            bctr        => bctr,
-            pctr        => pctr,
-            bmax        => bmax,
-            go          => go,
-            resync      => resync,
-            d           => db,
-            q           => qb
+            clk     => clk,
+            rst     => rst,
+            ipb_in  => ipbw_b(j),
+            ipb_out => ipbr_b(j),
+            clk_p   => clk_p,
+            rst_p   => rst_p,
+            orb     => octr,
+            bctr    => bctr,
+            pctr    => pctr,
+            bmax    => bmax,
+            go      => go,
+            resync  => resync,
+            d       => db,
+            q       => qb
             );
 
       end generate;

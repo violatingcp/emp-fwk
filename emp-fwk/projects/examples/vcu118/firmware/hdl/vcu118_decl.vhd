@@ -30,18 +30,19 @@ package emp_project_decl is
 
   -- mgt -> chk -> buf -> fmt -> (algo) -> (fmt) -> buf -> chk -> mgt -> clk -> altclk
   constant REGION_CONF : region_conf_array_t := (
-    0  => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt, -1, -1),
-    1  => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt, -1, -1),
-    2  => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt, -1, -1),
-    4  => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt, -1, -1),
-    5  => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt, -1, -1),
-    6  => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt, -1, -1),
-    7  => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt, -1, -1),
-    8  => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt, -1, -1),
+    --0  => (no_mgt, u_crc32, no_buf, no_fmt, no_buf, u_crc32, no_mgt),
+    --2  => (no_mgt, u_crc32, no_buf, no_fmt, no_buf, u_crc32, no_mgt),
+    --4  => (no_mgt, u_crc32, no_buf, no_fmt, no_buf, u_crc32, no_mgt),
+    --5  => (no_mgt, u_crc32, no_buf, no_fmt, no_buf, u_crc32, no_mgt),
+    --6  => (no_mgt, u_crc32, no_buf, no_fmt, no_buf, u_crc32, no_mgt),
+    --7  => (no_mgt, u_crc32, no_buf, no_fmt, no_buf, u_crc32, no_mgt),
+    --8  => (no_mgt, u_crc32, no_buf, no_fmt, no_buf, u_crc32, no_mgt),
+    11  => (gty25, u_crc32, buf, no_fmt, buf, u_crc32, gty25),  -- Bank 231 
+    12  => (gty16, u_crc32, buf, no_fmt, buf, u_crc32, gty16),  -- Bank 232 
     ---- Cross-chip
-    13 => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt, -1, -1),
-    16 => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt, -1, -1),
-    17 => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt, -1, -1),
+--    13 => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt),
+--    16 => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt),
+--    17 => (no_mgt, u_crc32, buf, no_fmt, buf, u_crc32, no_mgt),
 
     others => kDummyRegion
     );

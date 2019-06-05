@@ -1,2 +1,2 @@
-src ../sim_hdl/emp_ttc_sim.vhd ../sim_hdl/emp_ttc_clocks_sim.vhd
+src --cd ../sim_hdl emp_ttc_sim.vhd emp_ttc_clocks_sim.vhd
 include ttc_common.dep

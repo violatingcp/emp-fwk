@@ -20,8 +20,8 @@ end emp_oscclk;
 
 architecture rtl of emp_oscclk is
 
-  signal clk_fb_osc : std_logic;  -- mmcm feedback signals
-  signal osc_clk    : std_logic;
+  signal clk_fb_osc               : std_logic;  -- mmcm feedback signals
+  signal osc_clk                  : std_logic;
 
   signal clk_40ext_i, clk_40ext_b : std_logic;
 
@@ -36,7 +36,6 @@ begin
       I  => osc_clk_p,  -- 1-bit input: Diff_p buffer input (connect directly to top-level port)
       IB => osc_clk_n   -- 1-bit input: Diff_n buffer input (connect directly to top-level port)
       );
-
 
   -- Convert pcie user clock to LHC clock (40 Mhz)
   mmcm_osc_clk : MMCME3_BASE

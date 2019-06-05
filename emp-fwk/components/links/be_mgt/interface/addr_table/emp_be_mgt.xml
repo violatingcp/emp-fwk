@@ -1,0 +1,19 @@
+<node description="MGT controller" class="MGTRegionNode" fwinfo="endpoint;width=2">
+  <node id="ctrl" address="0x0">
+     <node id="rst" mask="0x00000001" />
+     <node id="loopback" mask="0x00000002" />
+    <node id="rst_error_cnt" mask="0x00000004" />
+  </node>
+  <node id="status" address="0x1" permission="r">
+     <node id="link" mask="0x00000001" />
+     <node id="init_done" mask="0x00000002" />
+     <node id="qplllock" mask="0x00000004" />
+     <node id="link_down_latched" mask="0x00000008" />
+     <node id="reset_tx_done" mask="0x00000010" />
+     <node id="reset_rx_done" mask="0x00000020" />
+     <node id="bufferbypass_tx_done" mask="0x00000040" />
+     <node id="bufferbypass_rx_done" mask="0x00000080" />
+     <node id="crc_error_out"  mask="0x00000F00" />
+     <node id="test" mask="0xFFFFF000" />
+  </node>
+</node>
