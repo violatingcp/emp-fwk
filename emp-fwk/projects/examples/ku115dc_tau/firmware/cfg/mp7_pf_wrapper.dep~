@@ -1,0 +1,18 @@
+src emp_payload.vhd
+src pf_ip_wrapper.vhd
+#src demultiplexer.vhd
+#src demux_quad.vhd
+#src multiplexer.vhd
+#src mux_quad.vhd
+src multiplexerII.vhd
+src demultiplexerII.vhd
+src pf_data_types.vhd
+src pf_constants.vhd
+src --vhdl2008  multiplexerII.vhd 
+src --vhdl2008  demultiplexerII.vhd
+src --vhdl2008  emp_payload.vhd
+src --vhdl2008  pf_ip_wrapper.vhd
+src --vhdl2008  pf_constants.vhd
+src --vhdl2008  pf_data_types.vhd
+#?toolset=="Vivado"? src ../ucf/mp7_pf_wrapper.tcl
+#addrtab -t mp7_payload.xml

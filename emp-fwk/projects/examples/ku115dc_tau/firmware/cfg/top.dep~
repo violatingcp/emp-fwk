@@ -1,0 +1,5 @@
+include mp7_pf_wrapper.dep
+include -c components/payload emp_simple_payload.dep
+include -c boards/serenity/dc_ku115 dc_ku115_so1.dep
+src ku115dc_decl.vhd 
+setup build.tcl
