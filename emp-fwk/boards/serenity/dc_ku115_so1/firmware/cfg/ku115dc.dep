@@ -9,7 +9,7 @@ src --cd ../ucf pins.tcl area_constraints.tcl
 
 src emp_device_decl.vhd
 
-include -c components/utils slim_top_us.dep
+include -c components/utils slim_top.dep
 
 src emp_slim_top_decl.vhd
 

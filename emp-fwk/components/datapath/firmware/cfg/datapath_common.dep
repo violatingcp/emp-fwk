@@ -31,8 +31,9 @@ src ipbus_decode_emp_chan_buffer.vhd
 addrtab -t emp_chan_buffer.xml
 
 # Refclocks
-? device_generation == "UltraScale"     ? src --cd us  emp_ibufds_gt.vhd 
-? device_generation == "UltraScalePlus" ? src --cd usp emp_ibufds_gt.vhd
+src --cd us  emp_ibufds_gt.vhd 
+#? device_generation == "UltraScale"     ? src --cd us  emp_ibufds_gt.vhd 
+#? device_generation == "UltraScalePlus" ? src --cd usp emp_ibufds_gt.vhd
 
 # include -c mp7:components/mp7_formatter
 addrtab -c mp7:components/mp7_formatter mp7_formatter.xml

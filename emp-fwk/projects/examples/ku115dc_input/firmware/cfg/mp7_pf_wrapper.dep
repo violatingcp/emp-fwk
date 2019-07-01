@@ -1,0 +1,5 @@
+src --vhdl2008  emp_payload.vhd
+src --vhdl2008  sort_ip_wrapper.vhd
+src --vhdl2008  pf_constants.vhd
+#?toolset=="Vivado"? src ../ucf/mp7_pf_wrapper.tcl
+#addrtab -t mp7_payload.xml

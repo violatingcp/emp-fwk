@@ -1,5 +1,6 @@
 src emp_ttc.vhd 
 src --cd ../ucf ttc_clock_constraints.tcl 
-?device_generation == "UltraScale"    ? src --cd us emp_ttc_clocks.vhd
-?device_generation == "UltraScalePlus"? src --cd usp emp_ttc_clocks.vhd
+src --cd us emp_ttc_clocks.vhd
+#?device_generation == "UltraScale"    ? src --cd us emp_ttc_clocks.vhd
+#?device_generation == "UltraScalePlus"? src --cd usp emp_ttc_clocks.vhd
 include ttc_common.dep
